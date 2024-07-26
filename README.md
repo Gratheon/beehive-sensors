@@ -6,6 +6,22 @@ flowchart LR
 	hardware-beehive-sensors[<a href="https://github.com/Gratheon/hardware-beehive-sensors">hardware-beehive-sensors</a>] -."send temperature \n(every 1 min)".-> telemetry-api[<a href="https://github.com/Gratheon/telemetry-api">telemetry-api</a>]
 ```
 
+
+## Assembly
+See [Notion](https://gratheon.notion.site/Bill-of-Materials-IoT-bd5472babeb94957886bafd9b46c92ec) for full list of materials.
+
+### Temperature sensor DS18B20
+```
+                +-------------+
+                |   ESP32     |
+                |             |
+                |   3.3V -----+------ VCC    (DS18B20)
+                |   GND  -----+------ GND    (DS18B20)
+                |   GPIO4 ----+------ DQ     (DS18B20)
+                +-------------+
+```
+
+
 ## Installation
 - Install [DallasTemperature@3.9.0](https://github.com/milesburton/Arduino-Temperature-Control-Library) library in Arduino IDE (DallasTemperature@3.9.0
 - Use Arduino IDE to compile and upload the code to ESP32
