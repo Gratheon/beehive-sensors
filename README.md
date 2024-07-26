@@ -8,9 +8,14 @@ flowchart LR
 
 ## Installation
 - Install [DallasTemperature@3.9.0](https://github.com/milesburton/Arduino-Temperature-Control-Library) library in Arduino IDE (DallasTemperature@3.9.0
-- Change configuration settings, have your own WIFI credentials
-- Set API token that you can get from account settings at https://app.gratheon.com/account
-- Set target hive Id (that you can take from URL, ex `https://app.gratheon.com/apiaries/7/hives/54` <-- ID is `54`)
-- Compile and upload from Arduino IDE, observe how ESP32 measures and uploads the metrics
+- Use Arduino IDE to compile and upload the code to ESP32
+- Power on ESP32
+- Connect to the ESP32 WIFI network (gratheon), use password `gratheon`
+- Open browser and navigate to `http://192.168.4.1`
+- Enter your WIFI credentials
+- Set target URL `https://telemetry.gratheon.com/metric/HIVE_ID?api_token=API_TOKEN`
+  - replace `HIVE_ID` with your hive ID. You can take that you can take from URL, ex `https://app.gratheon.com/apiaries/7/hives/54` <-- ID is `54`
+  - replace `API_TOKEN` with generate token from account settings at https://app.gratheon.com/account
+- Click `Save` button. Your ESP32 will restart and connect to your WIFI network and start sending data to the telemetry API service
 
 <img width="300" alt="Screenshot 2024-07-26 at 20 07 53" src="https://github.com/user-attachments/assets/b4ed305f-7ddd-44ff-b200-e0d139734349">
