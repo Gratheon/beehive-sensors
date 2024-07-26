@@ -7,6 +7,10 @@ flowchart LR
 ```
 
 ## Installation
-- Install Dallas Temperature library in Arduino IDE
-  DallasTemperature@3.9.0
-  https://github.com/milesburton/Arduino-Temperature-Control-Library
+- Install [DallasTemperature@3.9.0](https://github.com/milesburton/Arduino-Temperature-Control-Library) library in Arduino IDE (DallasTemperature@3.9.0
+- Change configuration settings, have your own WIFI credentials
+- Set API token that you can get from account settings at https://app.gratheon.com/account
+- Set target hive Id (that you can take from URL, ex `https://app.gratheon.com/apiaries/7/hives/54` <-- ID is `54`)
+- Compile and upload from Arduino IDE, observe how ESP32 measures and uploads the metrics
+
+<img width="300" alt="Screenshot 2024-07-26 at 20 07 53" src="https://github.com/user-attachments/assets/b4ed305f-7ddd-44ff-b200-e0d139734349">
