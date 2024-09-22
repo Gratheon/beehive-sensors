@@ -1,4 +1,4 @@
-# hardware-beehive-sensors
+# gratheon/beehive-sensors
 A collection of code for IoT sensors for monitoring beehive on the edge devices, like ESP32
 
 ```mermaid
