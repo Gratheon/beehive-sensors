@@ -23,12 +23,21 @@ const char* form_html = R"rawliteral(
   </head>
   <body>
     <form action="/submit" method="POST">
+
       <label for="ssid">Target WiFi SSID:</label>
       <input type="text" id="ssid" name="ssid"><br><br>
+
       <label for="password">Target WiFi Password:</label>
       <input type="password" id="password" name="password"><br><br>
+
+      <label for="api_token">API Token:</label>
+      <input type="text" id="api_token" name="api_token"><br><br>
+
+      <label for="hive_id">Hive ID:</label>
+      <input type="text" id="hive_id" name="hive_id"><br><br>
+
       <label for="url">Target URL:</label>
-      <input type="text" id="url" name="url" value="https://telemetry.gratheon.com/metric/hiveID?api_token="><br><br>
+      <input type="text" id="url" name="url" value="https://telemetry.gratheon.com/iot/v1/metrics"><br><br>
       <input type="submit" value="Submit">
     </form>
   </body>
@@ -66,11 +75,15 @@ void handleSubmit() {
   wifi_ssid = server.arg("ssid");
   wifi_password = server.arg("password");
   target_url = server.arg("url");
+  api_token = server.arg("api_token");
+  hive_id = server.arg("hive_id");
 
   Serial.println("Received new WiFi credentials and target URL:");
   Serial.println("SSID: " + wifi_ssid);
   Serial.println("Password: " + wifi_password);
   Serial.println("URL: " + target_url);
+  Serial.println("API Token: " + api_token);
+  Serial.println("Hive ID: " + hive_id);
 
   server.send(200, "text/html", "<html><body><h2>Configuration Saved! Rebooting...</h2></body></html>");
 
@@ -121,9 +134,10 @@ void loop() {
 
     http.begin(target_url); // Specify the URL
     http.addHeader("Content-Type", "application/json"); // Specify content-type header
+    http.addHeader("Authorization", "Bearer " + api_token);
 
     // Create JSON object to send
-    String jsonPayload = "{\"fields\":{\"temperature\":" + String(temperatureC) + "}}";
+    String jsonPayload = "{\"hiveId\":\"" + hive_id + "\", \"fields\":{\"temperatureCelsius\":" + String(temperatureC) + "}}";
     Serial.print(jsonPayload);
 
     int httpResponseCode = http.POST(jsonPayload);
