@@ -4,6 +4,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <HTTPClient.h>
+#include <Preferences.h>
 
 
 // Constants for AP mode
@@ -101,6 +102,30 @@ String api_token;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
+Preferences preferences;
+
+// Function to save configurations
+void saveConfigurations() {
+  preferences.begin("config", false);
+  preferences.putString("ssid", wifi_ssid);
+  preferences.putString("password", wifi_password);
+  preferences.putString("url", target_url);
+  preferences.putString("api_token", api_token);
+  preferences.putString("hive_id", hive_id);
+  preferences.end();
+}
+
+// Function to load configurations
+void loadConfigurations() {
+  preferences.begin("config", true);
+  wifi_ssid = preferences.getString("ssid", "");
+  wifi_password = preferences.getString("password", "");
+  target_url = preferences.getString("url", "https://telemetry.gratheon.com/iot/v1/metrics");
+  api_token = preferences.getString("api_token", "");
+  hive_id = preferences.getString("hive_id", "");
+  preferences.end();
+}
+
 void connectToWiFi() {
   WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
   Serial.println("Connecting to new WiFi network...");
@@ -123,6 +148,8 @@ void handleSubmit() {
   target_url = server.arg("url");
   api_token = server.arg("api_token");
   hive_id = server.arg("hive_id");
+
+  saveConfigurations(); // Save configurations to non-volatile storage
 
   Serial.println("Received new WiFi credentials and target URL:");
   Serial.println("SSID: " + wifi_ssid);
@@ -155,10 +182,16 @@ void setup() {
   Serial.begin(115200);
   delay(100);
 
-  // Start in AP mode to allow configuration
-  setupAPMode();
-  sensors.begin();
+  loadConfigurations(); // Load configurations from non-volatile storage
 
+  if (wifi_ssid.isEmpty() || wifi_password.isEmpty()) {
+    // Start in AP mode to allow configuration if no credentials are stored
+    setupAPMode();
+  } else {
+    connectToWiFi(); // Connect using stored credentials
+  }
+
+  sensors.begin();
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW); // Ensure LED is off initially
 }
