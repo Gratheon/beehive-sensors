@@ -4,8 +4,8 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <HTTPClient.h>
+#include <HX711.h>
 #include <Preferences.h>
-
 
 // Constants for AP mode
 const char* ap_ssid = "gratheon";
@@ -15,6 +15,29 @@ const char* ap_password = "gratheon";
 WebServer server(80);
 DNSServer dnsServer;
 
+// WIFI access
+String wifi_ssid;
+String wifi_password;
+String target_url;
+String hive_id;
+String api_token;
+
+#define ONE_WIRE_BUS 4 // Define pin for temperature sensor DS18B20 data line
+#define LED_PIN 2
+#define LOADCELL_DOUT_PIN 22 // Define pin for HX711 DOUT
+#define LOADCELL_SCK_PIN 23 // Define pin for HX711 SCK
+
+#define SLEEP_INTERVAL_SEC 10
+#define DEBUG_SLEEP_MS 500
+#define BAUD_RATE 115200
+
+#define DEBUG_MODE true // Set to true to enable debug mode
+
+// OneWire oneWire(ONE_WIRE_BUS);
+// DallasTemperature sensors(&oneWire);
+HX711 scale;
+
+Preferences preferences;
 // HTML form to capture WiFi credentials and target URL
 const char* form_html = R"rawliteral(
 <!DOCTYPE HTML>
@@ -89,21 +112,6 @@ const char* form_html = R"rawliteral(
 </html>
 )rawliteral";
 
-// WIFI access
-String wifi_ssid;
-String wifi_password;
-String target_url;
-String hive_id;
-String api_token;
-
-#define ONE_WIRE_BUS 4 // Define pin for temperature sensor DS18B20 data line
-#define LED_PIN 2
-
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
-
-Preferences preferences;
-
 // Function to save configurations
 void saveConfigurations() {
   preferences.begin("config", false);
@@ -123,18 +131,19 @@ void loadConfigurations() {
   target_url = preferences.getString("url", "https://telemetry.gratheon.com/iot/v1/metrics");
   api_token = preferences.getString("api_token", "");
   hive_id = preferences.getString("hive_id", "");
+
   preferences.end();
 }
 
 void connectToWiFi() {
   WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
-  Serial.println("Connecting to new WiFi network...");
+  Serial.println("Connecting to target WiFi network...");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("");
-  Serial.print("Connected to new WiFi network with IP: ");
+  Serial.print("Connected to target WiFi network with IP: ");
   Serial.println(WiFi.localIP());
 }
 
@@ -179,62 +188,168 @@ void setupAPMode() {
 }
 
 void setup() {
-  Serial.begin(115200);
-  delay(100);
+  Serial.begin(BAUD_RATE);
+  delay(200);
 
-  loadConfigurations(); // Load configurations from non-volatile storage
+  // Turn off Bluetooth as we don't need it
+  btStop();
 
-  if (wifi_ssid.isEmpty() || wifi_password.isEmpty()) {
-    // Start in AP mode to allow configuration if no credentials are stored
-    setupAPMode();
-  } else {
-    connectToWiFi(); // Connect using stored credentials
+  // Turn off WiFi in debug mode, hoping to reduce EM noise
+  if (DEBUG_MODE) {
+    WiFi.disconnect(true); // Disconnect from the WiFi network
+    WiFi.mode(WIFI_OFF);   // Turn off the WiFi module
+    Serial.println("WiFi turned off.");
+  }
+  else {
+    loadConfigurations(); // Load configurations from non-volatile storage
+
+    if (wifi_ssid.isEmpty() || wifi_password.isEmpty()) {
+      // Start in AP mode to allow configuration if no credentials are stored
+      setupAPMode();
+    } else {
+      connectToWiFi(); // Connect using stored credentials
+    }
   }
 
+
+  // Initialize HX711
+  Serial.println("starting scales");
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  scale.tare(1);
+  Serial.println("Scales are on");
+  scale.set_offset(); // change after calibration
+  scale.set_scale(3000); // change after calibration
+
+  // INIT DallasTemperature
   sensors.begin();
+
+  // Initialize LED
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW); // Ensure LED is off initially
 }
 
+
+void calibrateWeight()
+{
+  Serial.println("\n\nCALIBRATION\n===========");
+  Serial.println("remove all weight from the loadcell");
+  //  flush Serial input
+  while (Serial.available()) Serial.read();
+
+  Serial.println("and press enter\n");
+  while (Serial.available() == 0);
+
+  Serial.println("Determine zero weight offset");
+  //  average 10 measurements.
+  scale.tare(10);
+  int32_t offset = scale.get_offset();
+
+  Serial.print("OFFSET: ");
+  Serial.println(offset);
+  Serial.println();
+
+
+  Serial.println("place a weight on the loadcell");
+  //  flush Serial input
+  while (Serial.available()) Serial.read();
+
+  Serial.println("enter the weight in (whole) grams and press enter");
+  uint32_t weight = 0;
+  while (Serial.peek() != '\n')
+  {
+    if (Serial.available())
+    {
+      char ch = Serial.read();
+      if (isdigit(ch))
+      {
+        weight *= 10;
+        weight = weight + (ch - '0');
+      }
+    }
+  }
+  Serial.print("WEIGHT: ");
+  Serial.println(weight);
+  scale.calibrate_scale(weight, 10);
+  float scaleValue = scale.get_scale();
+
+  Serial.print("SCALE:  ");
+  Serial.println(scaleValue, 6);
+
+  Serial.print("\nuse scaleValue.set_offset(");
+  Serial.print(offset);
+  Serial.print("); and scaleValue.set_scale(");
+  Serial.print(scaleValue, 6);
+  Serial.print(");\n");
+  Serial.println("in the setup of your project");
+
+  Serial.println("\n\n");
+}
+
 void loop() {
-  // Handle DNS and HTTP server in AP mode
-  dnsServer.processNextRequest();
-  server.handleClient();
+  // calibrateWeight();
+  // return 
 
-  // Once connected to the new WiFi network, perform the main tasks
-  if (WiFi.status() == WL_CONNECTED) {
-    // Blink LED
-    digitalWrite(LED_PIN, HIGH); // Turn LED on
+  // Blink LED
+  digitalWrite(LED_PIN, HIGH); // Turn LED on
 
-    sensors.requestTemperatures();
-    float temperatureC = sensors.getTempCByIndex(0);
-
-    HTTPClient http;
-
-    http.begin(target_url); // Specify the URL
-    http.addHeader("Content-Type", "application/json"); // Specify content-type header
-    http.addHeader("Authorization", "Bearer " + api_token);
-
-    // Create JSON object to send
-    String jsonPayload = "{\"hiveId\":\"" + hive_id + "\", \"fields\":{\"temperatureCelsius\":" + String(temperatureC) + "}}";
-    Serial.print(jsonPayload);
-
-    int httpResponseCode = http.POST(jsonPayload);
-
-    if (httpResponseCode > 0) {
-      String response = http.getString();
-      Serial.println(httpResponseCode);
-      Serial.println(response);
+  // Debug mode only prints weight
+  if (DEBUG_MODE){
+    if (scale.is_ready()) {
+      float weight = scale.get_units(1);
+      Serial.println(weight);
     } else {
-      Serial.print("Error on sending POST: ");
-      Serial.println(httpResponseCode);
+      Serial.println("HX711 not ready or not found.");
     }
 
-    http.end(); // Free resources
-
-    delay(500); // Adjust the delay for desired blink duration
     digitalWrite(LED_PIN, LOW); // Turn LED off
+    delay(DEBUG_SLEEP_MS); // Adjust the delay for desired blink duration
+  }
+  else{
+    // Handle DNS and HTTP server in AP mode
+    dnsServer.processNextRequest();
+    server.handleClient();
 
-    delay(60000); // wait for a minute
+    // Once connected to the new WiFi network, perform the main tasks
+    if (WiFi.status() == WL_CONNECTED) {
+      sensors.requestTemperatures();
+      float temperatureC = sensors.getTempCByIndex(0);
+      float temperatureC = 0;
+
+      // Get weight
+      float weight = 0;
+      String jsonPayload = "{\"hiveId\":\"" + hive_id + "\", \"fields\":{\"temperatureCelsius\":" + String(temperatureC);
+
+      if (scale.is_ready()) {
+        weight = scale.get_units(1); // Get weight measurement with 10 samples for average
+
+        // Append weight to JSON payload
+        jsonPayload += ", \"weightKg\":" + String(weight);
+      } else {
+        Serial.println("HX711 not ready or not found.");
+      }
+
+      jsonPayload += "}}"; // Close the JSON object
+
+      HTTPClient http;
+      http.begin(target_url); // Specify the URL
+      http.addHeader("Content-Type", "application/json"); // Specify content-type header
+      http.addHeader("Authorization", "Bearer " + api_token);
+
+      int httpResponseCode = http.POST(jsonPayload);
+
+      if (httpResponseCode > 0) {
+        String response = http.getString();
+        Serial.println(response);
+      } else {
+        Serial.print("Error on sending POST: ");
+        Serial.println(httpResponseCode);
+      }
+
+      http.end();
+
+      digitalWrite(LED_PIN, LOW); // Turn LED off
+
+      delay(SLEEP_INTERVAL_SEC * 1000); // wait for a minute
+    }
   }
 }
