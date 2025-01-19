@@ -1,11 +1,17 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
+#include <HTTPClient.h>
+#include <Preferences.h>
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <HTTPClient.h>
+
 #include <HX711.h>
-#include <Preferences.h>
+
+#include <LCD_I2C.h>
+
+LCD_I2C lcd(0x27, 16, 2);
 
 // Constants for AP mode
 const char* ap_ssid = "gratheon";
@@ -28,7 +34,7 @@ String api_token;
 #define LOADCELL_SCK_PIN 23 // Define pin for HX711 SCK
 
 #define SLEEP_INTERVAL_SEC 10
-#define DEBUG_SLEEP_MS 500
+#define DEBUG_SLEEP_MS 5000
 #define BAUD_RATE 115200
 
 #define DEBUG_MODE true // Set to true to enable debug mode
@@ -188,6 +194,10 @@ void setupAPMode() {
 }
 
 void setup() {
+  lcd.begin();
+  lcd.backlight();
+  lcd.print("Gratheon");
+
   Serial.begin(BAUD_RATE);
   delay(200);
 
@@ -212,20 +222,27 @@ void setup() {
   }
 
 
-  // Initialize HX711
-  Serial.println("starting scales");
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
-  scale.tare(1);
-  Serial.println("Scales are on");
-  scale.set_offset(); // change after calibration
-  scale.set_scale(3000); // change after calibration
+  // // Initialize HX711
+  // Serial.println("starting scales");
+  // lcd.print("starting scales");
+  // scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  // if (scale.is_ready()) {
+  //   scale.tare(1);
+  //   Serial.println("Scales are on");
+  //   scale.set_offset(); // change after calibration
+  //   scale.set_scale(3000); // change after calibration
+  // }
 
-  // INIT DallasTemperature
-  sensors.begin();
+  // // INIT DallasTemperature
+  // sensors.begin();
 
   // Initialize LED
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW); // Ensure LED is off initially
+  
+  lcd.setCursor(0, 1);
+  lcd.print("setup complete");
+  lcd.noBacklight();
 }
 
 
@@ -286,6 +303,11 @@ void calibrateWeight()
 }
 
 void loop() {
+  lcd.backlight();
+  lcd.print("Weight: 123");
+  lcd.setCursor(0, 1);
+  lcd.print("Temperature: 34");
+
   // calibrateWeight();
   // return 
 
@@ -301,6 +323,10 @@ void loop() {
       Serial.println("HX711 not ready or not found.");
     }
 
+    delay(1000);
+    lcd.noBacklight();
+    lcd.clear();
+    
     digitalWrite(LED_PIN, LOW); // Turn LED off
     delay(DEBUG_SLEEP_MS); // Adjust the delay for desired blink duration
   }
