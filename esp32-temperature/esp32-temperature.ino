@@ -33,8 +33,8 @@ String api_token;
 
 #define DEBUG_MODE true // Set to true to enable debug mode
 
-// OneWire oneWire(ONE_WIRE_BUS);
-// DallasTemperature sensors(&oneWire);
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
 HX711 scale;
 
 Preferences preferences;
@@ -313,7 +313,6 @@ void loop() {
     if (WiFi.status() == WL_CONNECTED) {
       sensors.requestTemperatures();
       float temperatureC = sensors.getTempCByIndex(0);
-      float temperatureC = 0;
 
       // Get weight
       float weight = 0;
