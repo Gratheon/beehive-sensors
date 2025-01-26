@@ -29,12 +29,16 @@ String hive_id;
 String api_token;
 
 #define ONE_WIRE_BUS 4 // Define pin for temperature sensor DS18B20 data line
-#define LED_PIN 2
-#define LOADCELL_DOUT_PIN 22 // Define pin for HX711 DOUT
-#define LOADCELL_SCK_PIN 23 // Define pin for HX711 SCK
+
+#define LOADCELL_DOUT_PIN 19 // Define pin for HX711 DOUT
+#define LOADCELL_SCK_PIN 21 // Define pin for HX711 SCK
+
+#define LCD_POWER_PIN 2
+#define LCD_SDA_PIN 22
+#define LCD_SCL_PIN 23
 
 #define SLEEP_INTERVAL_SEC 10
-#define DEBUG_SLEEP_MS 5000
+#define DEBUG_SLEEP_MS 1000
 #define BAUD_RATE 115200
 
 #define DEBUG_MODE true // Set to true to enable debug mode
@@ -193,22 +197,39 @@ void setupAPMode() {
   server.begin();
 }
 
+String previousLine = "";
+
+void printWithLCD(String s) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(previousLine);
+  lcd.setCursor(0, 1);
+  lcd.print(s);
+  
+  Serial.println(s);
+  previousLine = s;
+  
+  delay(300); // delay for readability
+}
+
 void setup() {
-  lcd.begin();
+  lcd.begin(LCD_SDA_PIN, LCD_SCL_PIN);
   lcd.backlight();
-  lcd.print("Gratheon");
+  printWithLCD("Gratheon");
+  printWithLCD("IoT sensors");
 
   Serial.begin(BAUD_RATE);
   delay(200);
 
   // Turn off Bluetooth as we don't need it
+  printWithLCD("Bluetooth off");
   btStop();
 
   // Turn off WiFi in debug mode, hoping to reduce EM noise
   if (DEBUG_MODE) {
     WiFi.disconnect(true); // Disconnect from the WiFi network
     WiFi.mode(WIFI_OFF);   // Turn off the WiFi module
-    Serial.println("WiFi turned off.");
+    printWithLCD("WiFi off");
   }
   else {
     loadConfigurations(); // Load configurations from non-volatile storage
@@ -222,23 +243,21 @@ void setup() {
   }
 
 
-  // // Initialize HX711
-  // Serial.println("starting scales");
-  // lcd.print("starting scales");
-  // scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
-  // if (scale.is_ready()) {
-  //   scale.tare(1);
-  //   Serial.println("Scales are on");
-  //   scale.set_offset(); // change after calibration
-  //   scale.set_scale(3000); // change after calibration
-  // }
+  // Initialize HX711
+  printWithLCD("Starting scales");
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+
+  scale.tare(1);
+  printWithLCD("Scales are on");
+  scale.set_offset(-845*111); //845*111
+  scale.set_scale(-111); // 111
 
   // // INIT DallasTemperature
   // sensors.begin();
 
   // Initialize LED
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW); // Ensure LED is off initially
+  pinMode(LCD_POWER_PIN, OUTPUT);
+  digitalWrite(LCD_POWER_PIN, LOW); // Ensure LED is off initially
   
   lcd.setCursor(0, 1);
   lcd.print("setup complete");
@@ -304,54 +323,56 @@ void calibrateWeight()
 
 void loop() {
   lcd.backlight();
-  lcd.print("Weight: 123");
-  lcd.setCursor(0, 1);
-  lcd.print("Temperature: 34");
-
-  // calibrateWeight();
-  // return 
 
   // Blink LED
-  digitalWrite(LED_PIN, HIGH); // Turn LED on
+  digitalWrite(LCD_POWER_PIN, HIGH); // Turn LED on
 
   // Debug mode only prints weight
   if (DEBUG_MODE){
     if (scale.is_ready()) {
       float weight = scale.get_units(1);
-      Serial.println(weight);
+      printWithLCD("Weight: " + String(weight));
     } else {
-      Serial.println("HX711 not ready or not found.");
+      printWithLCD("HX711 not ready or not found.");
     }
-
-    delay(1000);
-    lcd.noBacklight();
-    lcd.clear();
     
-    digitalWrite(LED_PIN, LOW); // Turn LED off
+    digitalWrite(LCD_POWER_PIN, LOW); // Turn LED off
     delay(DEBUG_SLEEP_MS); // Adjust the delay for desired blink duration
   }
-  else{
+  else {
     // Handle DNS and HTTP server in AP mode
     dnsServer.processNextRequest();
     server.handleClient();
 
     // Once connected to the new WiFi network, perform the main tasks
     if (WiFi.status() == WL_CONNECTED) {
-      sensors.requestTemperatures();
-      float temperatureC = sensors.getTempCByIndex(0);
-
       // Get weight
       float weight = 0;
-      String jsonPayload = "{\"hiveId\":\"" + hive_id + "\", \"fields\":{\"temperatureCelsius\":" + String(temperatureC);
+      String jsonPayload = "{\"hiveId\":\"" + hive_id + "\", \"fields\":{";
 
       if (scale.is_ready()) {
         weight = scale.get_units(1); // Get weight measurement with 10 samples for average
+        printWithLCD("Weight: " + String(weight));
 
         // Append weight to JSON payload
-        jsonPayload += ", \"weightKg\":" + String(weight);
+        jsonPayload += "\"weightKg\":" + String(weight);
       } else {
         Serial.println("HX711 not ready or not found.");
+        printWithLCD("Weight: err");
       }
+
+      // temperature
+      sensors.requestTemperatures();
+      float temperatureC = sensors.getTempCByIndex(0);
+      lcd.setCursor(0, 1);
+      if (temperatureC != 0) {
+        printWithLCD("Temperature: " + String(temperatureC));
+      } else {
+        printWithLCD("Temperature: err");
+      }
+
+      jsonPayload += ",";
+      jsonPayload += "\"temperatureCelsius\":" + String(temperatureC);
 
       jsonPayload += "}}"; // Close the JSON object
 
@@ -366,13 +387,13 @@ void loop() {
         String response = http.getString();
         Serial.println(response);
       } else {
-        Serial.print("Error on sending POST: ");
-        Serial.println(httpResponseCode);
+        printWithLCD("Error on sending POST: ");
+        printWithLCD(String(httpResponseCode));
       }
 
       http.end();
 
-      digitalWrite(LED_PIN, LOW); // Turn LED off
+      // digitalWrite(LCD_POWER_PIN, LOW); // Turn LED off
 
       delay(SLEEP_INTERVAL_SEC * 1000); // wait for a minute
     }
