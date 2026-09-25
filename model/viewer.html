@@ -1,0 +1,65 @@
+<div class="beehive-scale" data-beehive-scale>
+  <div class="bs-stage">
+    <canvas class="bs-canvas" data-bs="canvas" aria-label="3D model of the Gratheon beehive scale"></canvas>
+    <div class="bs-hint">
+      <span class="bs-chip">Drag to orbit · scroll to zoom</span>
+      <span class="bs-chip" data-bs="chip">Assembled</span>
+    </div>
+    <div class="bs-info" aria-live="polite">
+      <h3 data-bs="info-title">Point at any part</h3>
+      <p data-bs="info-text">Every part has a note: what it is, why it is there and how it is serviced.</p>
+    </div>
+  </div>
+  <aside class="bs-panel">
+    <header data-bs="header">
+      <div class="bs-kicker">Gratheon · beehive scale · phase 3</div>
+      <h1 class="bs-title">Beehive scale</h1>
+      <p class="bs-lede">A low hive stand with a single load cell and a snap-in ESP32 pod. It reports hive weight, brood temperature, ambient climate and battery health, and fits under a hive or into the Robotic Beehive plinth.</p>
+    </header>
+    <section>
+      <div class="bs-label">Assembly</div>
+      <div class="bs-explode">
+        <button class="bs-btn bs-primary" data-bs="explode" type="button">Explode</button>
+        <input type="range" data-bs="scrub" min="0" max="1000" value="0" aria-label="Exploded view">
+      </div>
+    </section>
+    <section>
+      <div class="bs-label">Parts</div>
+      <ol class="bs-steps" data-bs="parts"></ol>
+    </section>
+    <section>
+      <div class="bs-label">View</div>
+      <div class="bs-controls">
+        <div class="bs-field">
+          <span>Stands on</span>
+          <div class="bs-seg" role="group" aria-label="Where the scale stands" data-bs="context">
+            <button type="button" data-value="hive" aria-pressed="true">Ground</button>
+            <button type="button" data-value="robot" aria-pressed="false">Robot</button>
+          </div>
+        </div>
+        <div class="bs-field">
+          <span>Hive</span>
+          <div class="bs-seg" role="group" aria-label="Hive display" data-bs="hive">
+            <button type="button" data-value="solid" aria-pressed="false">Solid</button>
+            <button type="button" data-value="ghost" aria-pressed="true">Ghost</button>
+            <button type="button" data-value="off" aria-pressed="false">Off</button>
+          </div>
+        </div>
+        <div class="bs-field">
+          <span>18650 cells</span>
+          <div class="bs-seg" role="group" aria-label="Battery cells fitted" data-bs="cells">
+            <button type="button" data-value="2" aria-pressed="false">2</button>
+            <button type="button" data-value="3" aria-pressed="false">3</button>
+            <button type="button" data-value="4" aria-pressed="true">4</button>
+          </div>
+        </div>
+        <label class="bs-check"><input type="checkbox" data-bs="solar" checked> Solar panel</label>
+      </div>
+    </section>
+    <section>
+      <div class="bs-label">Key figures</div>
+      <dl class="bs-specs" data-bs="specs"></dl>
+    </section>
+    <p class="bs-foot">Open source: <a href="https://github.com/Gratheon/beehive-sensors">github.com/Gratheon/beehive-sensors</a>. The same model is available as <a data-bs="glb" href="beehive-scale.glb">beehive-scale.glb</a> with the exploded-view animation.</p>
+  </aside>
+</div>
