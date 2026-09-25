@@ -18,6 +18,7 @@ if (!chrome) throw new Error('Chrome not found; set CHROME=/path/to/chrome');
 const shots = [
   ['preview.png', 'hive=off&cam=close&explode=1', [1600, 1100]],
   ['preview-installed.png', 'hive=solid&cam=close', [1600, 1100]],
+  ['hero.png', 'hive=ghost&cam=hero', [1400, 1200]],
   ['preview-hive.png', 'hive=ghost', [1400, 1000]],
   ['preview-robot.png', 'context=robot', [1400, 1000]],
   ['preview-observer.png', 'front=observer', [1400, 1000]],

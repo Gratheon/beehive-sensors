@@ -8,7 +8,7 @@
 //   context=robot          show the scale inside the Robotic Beehive plinth
 //   hive=solid|ghost|off   hive display
 //   theme=light|dark       force the colour theme
-//   cam=close              camera close on the scale (product image)
+//   cam=close|hero         camera close on the scale / product hero framing
 //   front=landing|observer        front module
 //   solar=landing|left|back|right|lid|none   solar panel position
 import * as THREE from 'three';
@@ -57,20 +57,21 @@ export function mountBeehiveScale(root) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.6;
 
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.02, 30);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.02, 60);
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.maxPolarAngle = Math.PI * 0.495;
   controls.minDistance = 0.25;
   controls.maxDistance = 6;
 
-  const sun = new THREE.DirectionalLight(0xfff4e0, 2.3);
+  const sun = new THREE.DirectionalLight(0xfff6e5, 3.0);
   sun.position.set(-1.5, 3.2, 2.2);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -78,18 +79,39 @@ export function mountBeehiveScale(root) {
   sun.shadow.bias = -0.0004;
   const fill = new THREE.DirectionalLight(0xdfe8ff, 0.6);
   fill.position.set(2, 1.2, -2.5);
-  scene.add(sun, fill, new THREE.HemisphereLight(0xdfe8ff, 0x3b4a2c, 0.5));
+  scene.add(sun, fill, new THREE.HemisphereLight(0xcfe6ff, 0x5d8f3a, 0.8));
 
-  const groundMat = new THREE.MeshStandardMaterial({ color: 0xb9c2b0, roughness: 1 });
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(5, 64), groundMat);
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x5da83a, roughness: 1 });
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 96), groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
 
+  // Outdoor backdrop: a sky dome that fades to haze at the horizon, and grass
+  // that fogs into the same haze, so ground and sky meet without a seam.
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms: { top: { value: new THREE.Color(0x1f7fe0) }, horizon: { value: new THREE.Color(0xcfe8f8) } },
+    vertexShader: 'varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 horizon; varying vec3 vDir; void main() { float h = clamp(vDir.y, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, top, smoothstep(0.0, 0.22, h)), 1.0);\n#include <colorspace_fragment>\n}',
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+  });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(45, 32, 16), skyMat);
+  sky.renderOrder = -1;
+  scene.add(sky);
+  // Fallback behind the dome: the same haze as the horizon, never black.
+  scene.background = new THREE.Color(0xcfe8f8);
+  scene.fog = new THREE.Fog(0xcfe8f8, 10, 34);
   const applyThemeColors = () => {
     const cs = getComputedStyle(root);
-    scene.background = new THREE.Color(cs.getPropertyValue('--bs-scene').trim() || '#dfe3dc');
-    groundMat.color.set(cs.getPropertyValue('--bs-ground').trim() || '#b9c2b0');
+    const v = (name, fallback) => cs.getPropertyValue(name).trim() || fallback;
+    const horizon = v('--bs-scene', '#cfe8f8');
+    skyMat.uniforms.top.value.set(v('--bs-sky', '#1f7fe0'));
+    skyMat.uniforms.horizon.value.set(horizon);
+    scene.fog.color.set(horizon);
+    scene.background.set(horizon);
+    groundMat.color.set(v('--bs-ground', '#5da83a'));
   };
   applyThemeColors();
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyThemeColors);
@@ -109,15 +131,18 @@ export function mountBeehiveScale(root) {
   let scale;
 
   const frameCamera = () => {
-    if (hash.get('cam') === 'close') {
-      controls.target.set(0.08, 0.1 + explode * 0.12, 0.12);
-      camera.position.set(1.25, 0.72 + explode * 0.2, 1.3);
+    if (hash.get('cam') === 'hero') {
+      controls.target.set(0.06, 0.4, 0.1);
+      camera.position.set(1.42, 0.74, 1.58);
+    } else if (hash.get('cam') === 'close') {
+      controls.target.set(0.08, 0.16 + explode * 0.12, 0.12);
+      camera.position.set(1.45, 0.52 + explode * 0.22, 1.5);
     } else if (opts.context === 'robot') {
       controls.target.set(0, 0.5, 0.05);
       camera.position.set(2.1, 1.45, 2.3);
     } else {
-      controls.target.set(0.05, 0.36, 0.08);
-      camera.position.set(1.85, 1.2, 2.05);
+      controls.target.set(0.05, 0.4, 0.08);
+      camera.position.set(1.95, 0.95, 2.2);
     }
   };
 
@@ -301,6 +326,9 @@ export function mountBeehiveScale(root) {
     }
     explodeBtn.textContent = explodeTarget > 0.5 ? 'Assemble' : 'Explode';
     controls.update();
+    // The dome travels with the camera, so zooming out never pushes its far
+    // side past the camera's far plane (which clipped it to black).
+    sky.position.copy(camera.position);
     renderer.render(scene, camera);
   };
   // Only render while the viewer is on screen (it is embedded in long pages).

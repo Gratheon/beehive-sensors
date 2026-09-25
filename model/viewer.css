@@ -9,8 +9,10 @@
   --bs-accent: #e0a800;
   --bs-accent-ink: #5a4300;
   --bs-accent-soft: #f7e7b0;
-  --bs-scene: #dfe3dc;
-  --bs-ground: #b9c2b0;
+  /* Scene colours: always a sunny day, whatever the page theme. */
+  --bs-sky: #1f7fe0;
+  --bs-scene: #cfe8f8;
+  --bs-ground: #5da83a;
   --bs-focus: #b37f00;
   --bs-display: "Barlow Condensed", "Scada", "Arial Narrow", sans-serif;
   --bs-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -29,17 +31,17 @@
 @media (prefers-color-scheme: dark) {
   html:not([data-theme="light"]) .beehive-scale {
     --bs-bg: #121512; --bs-panel: #181c18; --bs-ink: #e7ebe4; --bs-muted: #9aa597; --bs-line: #2c332c;
-    --bs-accent: #f2bd1d; --bs-accent-ink: #f7d770; --bs-accent-soft: #3a3016; --bs-scene: #1a1f1b; --bs-ground: #2a3326; --bs-focus: #f2bd1d;
+    --bs-accent: #f2bd1d; --bs-accent-ink: #f7d770; --bs-accent-soft: #3a3016; --bs-focus: #f2bd1d;
     color-scheme: dark;
   }
 }
 html[data-theme="dark"] .beehive-scale {
   --bs-bg: #121512; --bs-panel: #181c18; --bs-ink: #e7ebe4; --bs-muted: #9aa597; --bs-line: #2c332c;
-  --bs-accent: #f2bd1d; --bs-accent-ink: #f7d770; --bs-accent-soft: #3a3016; --bs-scene: #1a1f1b; --bs-ground: #2a3326; --bs-focus: #f2bd1d;
+  --bs-accent: #f2bd1d; --bs-accent-ink: #f7d770; --bs-accent-soft: #3a3016; --bs-focus: #f2bd1d;
   color-scheme: dark;
 }
 .beehive-scale *, .beehive-scale *::before, .beehive-scale *::after { box-sizing: border-box; }
-.beehive-scale .bs-stage { position: relative; min-height: 0; background: var(--bs-scene); }
+.beehive-scale .bs-stage { position: relative; min-height: 0; background: linear-gradient(var(--bs-sky), var(--bs-scene) 62%); }
 .beehive-scale .bs-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; }
 .beehive-scale .bs-panel { background: var(--bs-panel); border-left: 1px solid var(--bs-line); overflow-y: auto; padding: 18px 18px 24px; display: flex; flex-direction: column; gap: 18px; }
 .beehive-scale h1, .beehive-scale h3 { color: var(--bs-ink); }
