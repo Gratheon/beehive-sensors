@@ -9,6 +9,8 @@
 //   hive=solid|ghost|off   hive display
 //   theme=light|dark       force the colour theme
 //   cam=close              camera close on the scale (product image)
+//   front=landing|observer        front module
+//   solar=landing|left|back|right|lid|none   solar panel position
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -16,9 +18,10 @@ import { buildScale, batteryLife, PARTS } from './scale-model.js';
 
 // Parts list order in the panel, grouped by assembly.
 const PART_ORDER = [
-  ['Scale', ['deck', 'locator', 'level', 'bracketTop', 'loadcell', 'bracketLow', 'stop', 'bumper', 'base', 'gland', 'feet']],
-  ['Pod', ['pod', 'podLid', 'pcb', 'esp32', 'hx711', 'charger', 'lora', 'battery', 'holder', 'm8', 'vent', 'led', 'dock']],
-  ['Sensors', ['probe', 'sht', 'cable', 'solar']],
+  ['Scale', ['deck', 'locator', 'level', 'bracketTop', 'loadcell', 'bracketLow', 'stop', 'bumper', 'base', 'lock', 'harness', 'feet']],
+  ['Pod', ['bay', 'dock', 'pod', 'face', 'usbc', 'cartridge', 'battery', 'podLid', 'pcb', 'esp32', 'hx711', 'charger', 'lora', 'vent']],
+  ['Modules', ['rail', 'fmi', 'landing', 'landingPlain', 'wing', 'solar', 'observer', 'probe', 'cable']],
+  ['Sensors', ['sht']],
 ];
 
 const SPECS = (s) => {
@@ -32,9 +35,12 @@ const SPECS = (s) => {
     ['Controller', 'ESP32-S3 · Wi-Fi + BLE (LoRa option)'],
     ['Sensors', 'weight · brood temp · air T/RH · battery'],
     ['Battery', `${p.cells} × 18650 (1S, ${p.cells * 2.5} Ah)`],
-    ['Runtime', d.robot ? 'robot 5 V rail on the solar port' : p.solar ? 'all year with 1 W solar' : `≈ ${Math.floor(life.months)} months at 10-min readings`],
+    ['Runtime', d.robot ? 'robot 5 V rail + roof panel' : p.front === 'observer' ? 'powered by the Entrance Observer' : d.solar !== 'none' ? 'all year with the 2.5 W panel' : `≈ ${Math.floor(life.months)} months, then swap the cartridge`],
+    ['Front module', d.robot ? 'robot harness on the M12 connector' : p.front === 'observer' ? 'Entrance Observer (concept)' : d.solarBoard ? 'solar landing board' : 'plain landing board'],
+    ['Solar panel', d.robot ? 'robot roof panel' : { landing: 'landing board (entrance faces south)', left: 'wing on the left rail', back: 'wing on the back rail', right: 'wing on the right rail', lid: 'on the hive lid', none: 'none: USB-C or cartridge swap' }[d.solar]],
+    ['Materials', 'plywood + thermo-pine, printed ASA, aluminium brackets'],
     ['Mounting', '4 × M10, 400 × 300 mm'],
-    ['Target BOM', '≈ €140–220 at 100 units'],
+    ['Target BOM', '≈ €150–250 at 100 units'],
   ];
 };
 
@@ -93,7 +99,8 @@ export function mountBeehiveScale(root) {
   const opts = {
     context: hash.get('context') === 'robot' ? 'robot' : 'hive',
     cells: 4,
-    solar: true,
+    front: hash.get('front') === 'observer' ? 'observer' : 'landing',
+    solar: ['landing', 'left', 'back', 'right', 'lid', 'none'].includes(hash.get('solar')) ? hash.get('solar') : 'landing',
   };
   let hiveMode = ['solid', 'ghost', 'off'].includes(hash.get('hive')) ? hash.get('hive') : 'ghost';
   let explode = Math.max(0, Math.min(1, Number(hash.get('explode')) || 0));
@@ -103,14 +110,14 @@ export function mountBeehiveScale(root) {
 
   const frameCamera = () => {
     if (hash.get('cam') === 'close') {
-      controls.target.set(0, 0.1 + explode * 0.14, -0.12);
-      camera.position.set(1.05, 0.7 + explode * 0.2, -1.2);
+      controls.target.set(0.08, 0.1 + explode * 0.12, 0.12);
+      camera.position.set(1.25, 0.72 + explode * 0.2, 1.3);
     } else if (opts.context === 'robot') {
-      controls.target.set(0, 0.5, -0.05);
-      camera.position.set(2.0, 1.45, -2.35);
+      controls.target.set(0, 0.5, 0.05);
+      camera.position.set(2.1, 1.45, 2.3);
     } else {
-      controls.target.set(0, 0.34, -0.06);
-      camera.position.set(1.75, 1.2, -2.05);
+      controls.target.set(0.05, 0.36, 0.08);
+      camera.position.set(1.85, 1.2, 2.05);
     }
   };
 
@@ -123,6 +130,7 @@ export function mountBeehiveScale(root) {
     scene.add(scale.root);
     scale.applyExplode(explode);
     setHive(hiveMode);
+    renderParts();
     renderSpecs();
     if (selected) highlight(selected);
   }
@@ -171,9 +179,11 @@ export function mountBeehiveScale(root) {
   function renderParts() {
     const list = $('parts');
     list.innerHTML = '';
+    const present = new Set();
+    scale.root.traverse((o) => { if (o.userData.part) present.add(o.userData.part); });
     let n = 0;
     for (const [groupName, keys] of PART_ORDER) {
-      for (const key of keys) {
+      for (const key of keys.filter((k) => present.has(k))) {
         const li = document.createElement('li');
         li.tabIndex = 0;
         li.dataset.part = key;
@@ -182,6 +192,7 @@ export function mountBeehiveScale(root) {
         li.querySelector('.t').textContent = PARTS[key][0];
         li.querySelector('.r').textContent = groupName;
         li.querySelector('.d').textContent = PARTS[key][1];
+        li.classList.toggle('on', key === selected);
         li.addEventListener('click', () => select(key));
         li.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(key); } });
         list.appendChild(li);
@@ -208,7 +219,20 @@ export function mountBeehiveScale(root) {
       build();
     });
   }
-  $('solar').addEventListener('change', (e) => { opts.solar = e.target.checked; build(); });
+  for (const b of $('front').querySelectorAll('button')) {
+    b.addEventListener('click', () => {
+      opts.front = b.dataset.value;
+      pressSeg('front', opts.front);
+      build();
+    });
+  }
+  for (const b of $('solar').querySelectorAll('button')) {
+    b.addEventListener('click', () => {
+      opts.solar = b.dataset.value;
+      pressSeg('solar', opts.solar);
+      build();
+    });
+  }
   const explodeBtn = $('explode');
   const scrub = $('scrub');
   explodeBtn.addEventListener('click', () => { explodeTarget = explodeTarget > 0.5 ? 0 : 1; });
@@ -255,8 +279,9 @@ export function mountBeehiveScale(root) {
   };
   new ResizeObserver(resize).observe(canvas.parentElement);
 
-  renderParts();
   pressSeg('context', opts.context);
+  pressSeg('front', opts.front);
+  pressSeg('solar', opts.solar);
   build();
   frameCamera();
   const clock = new THREE.Clock();

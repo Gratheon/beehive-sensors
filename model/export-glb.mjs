@@ -45,7 +45,7 @@ for (const o of moving) {
   if (p.some((v, i) => Math.abs(v - p[i % 3]) > 1e-7)) tracks.push(new THREE.VectorKeyframeTrack(`${o.name}.position`, times, p));
 }
 // Cables do not follow the exploded parts, so they shrink away while exploded.
-tracks.push(new THREE.VectorKeyframeTrack(`${nodes.cables.name}.scale`, times, times.flatMap((t) => (u(t) < 0.02 ? [1, 1, 1] : [1e-4, 1e-4, 1e-4]))));
+tracks.push(new THREE.VectorKeyframeTrack(`${nodes.fieldCables.name}.scale`, times, times.flatMap((t) => (u(t) < 0.02 ? [1, 1, 1] : [1e-4, 1e-4, 1e-4]))));
 const clip = new THREE.AnimationClip('explode', DURATION, tracks);
 clip.optimize();
 applyExplode(0);

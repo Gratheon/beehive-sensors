@@ -9,9 +9,9 @@ flowchart LR
 ```
 
 ## Beehive scale (Phase 3 production kit)
-A low stand under the hive with one AP62AFB single-point load cell and a snap-in IP67 ESP32-S3 pod (2–4 × 18650 cells, optional solar). The same scale bolts into the [Robotic Beehive](https://github.com/Gratheon/robotic-beehive) plinth.
+A plywood and thermo-pine stand under the hive with one AP62AFB single-point load cell, an IP67 ESP32-S3 pod flush in its side (display, button, USB-C, 2–4 × 18650 cartridge) and a solar panel that is the landing board or a wing on the south-facing side. Cabling stays inside the base; small parts are 3D printed. Front modules (landing boards, the future Entrance Observer) share one rail and M12 connector, and the same scale bolts into the [Robotic Beehive](https://github.com/Gratheon/robotic-beehive) plinth.
 
-[![Beehive scale 3D model, exploded view](docs/preview.png)](https://gratheon.com/products/scales/)
+[![Beehive scale 3D model: solar landing board, pod flush in the side](docs/preview-installed.png)](https://gratheon.com/products/scales/)
 
 - **3D model:** open `model/index.html` (self-contained, works offline) or see [gratheon.com/products/scales](https://gratheon.com/products/scales/). `model/beehive-scale.glb` has the exploded-view animation.
 - **Docs:** [product description](https://gratheon.com/docs/beehive-sensors/product-description/), [bill of materials](https://gratheon.com/docs/beehive-sensors/bill-of-materials/), [production wiring](https://gratheon.com/docs/beehive-sensors/#wiring)

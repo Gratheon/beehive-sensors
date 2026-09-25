@@ -14,7 +14,7 @@
     <header data-bs="header">
       <div class="bs-kicker">Gratheon · beehive scale · phase 3</div>
       <h1 class="bs-title">Beehive scale</h1>
-      <p class="bs-lede">A low hive stand with a single load cell and a snap-in ESP32 pod. It reports hive weight, brood temperature, ambient climate and battery health, and fits under a hive or into the Robotic Beehive plinth.</p>
+      <p class="bs-lede">A wooden hive stand with one load cell, an ESP32 pod flush in its side and a solar panel that is the landing board or hooks onto whichever side faces south. No loose cables, nothing sticking out, and the same modules fit the Robotic Beehive and the Entrance Observer.</p>
     </header>
     <section>
       <div class="bs-label">Assembly</div>
@@ -53,7 +53,24 @@
             <button type="button" data-value="4" aria-pressed="true">4</button>
           </div>
         </div>
-        <label class="bs-check"><input type="checkbox" data-bs="solar" checked> Solar panel</label>
+        <div class="bs-field bs-wide">
+          <span>Front module</span>
+          <div class="bs-seg" role="group" aria-label="Front module" data-bs="front">
+            <button type="button" data-value="landing" aria-pressed="true">Landing board</button>
+            <button type="button" data-value="observer" aria-pressed="false">Observer</button>
+          </div>
+        </div>
+        <div class="bs-field bs-wide">
+          <span>Solar panel (turn it to the south)</span>
+          <div class="bs-seg" role="group" aria-label="Solar panel position" data-bs="solar">
+            <button type="button" data-value="landing" aria-pressed="true">Entrance</button>
+            <button type="button" data-value="left" aria-pressed="false">Left</button>
+            <button type="button" data-value="back" aria-pressed="false">Back</button>
+            <button type="button" data-value="right" aria-pressed="false">Right</button>
+            <button type="button" data-value="lid" aria-pressed="false">Lid</button>
+            <button type="button" data-value="none" aria-pressed="false">None</button>
+          </div>
+        </div>
       </div>
     </section>
     <section>
