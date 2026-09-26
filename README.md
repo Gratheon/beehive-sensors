@@ -14,6 +14,7 @@ A plywood and thermo-pine stand under the hive with one AP62AFB single-point loa
 [![Beehive scale 3D model: solar landing board, pod flush in the side](docs/preview-installed.png)](https://gratheon.com/products/scales/)
 
 - **3D model:** open `model/index.html` (self-contained, works offline) or see [gratheon.com/products/scales](https://gratheon.com/products/scales/). `model/beehive-scale.glb` has the exploded-view animation.
+- **Design principles:** shared by all Gratheon hardware: [hardware design principles](https://gratheon.com/docs/hardware-design-principles/)
 - **Docs:** [product description](https://gratheon.com/docs/beehive-sensors/product-description/), [bill of materials](https://gratheon.com/docs/beehive-sensors/bill-of-materials/), [production wiring](https://gratheon.com/docs/beehive-sensors/#wiring)
 
 The model lives in `model/scale-model.js`; the viewer is `viewer.js`, `viewer.html` and `viewer.css`. After a change, rebuild:
