@@ -9,8 +9,7 @@
 //   hive=solid|ghost|off   hive display
 //   theme=light|dark       force the colour theme
 //   cam=close|hero         camera close on the scale / product hero framing
-//   front=landing|observer        front module
-//   solar=landing|left|back|right|lid|none   solar panel position
+//   observer=1             show an Entrance Observer on the front rail
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -20,8 +19,8 @@ import { buildScale, batteryLife, PARTS } from './scale-model.js';
 const PART_ORDER = [
   ['Scale', ['deck', 'locator', 'level', 'bracketTop', 'loadcell', 'bracketLow', 'stop', 'bumper', 'base', 'lock', 'harness', 'feet']],
   ['Pod', ['bay', 'dock', 'pod', 'face', 'usbc', 'cartridge', 'battery', 'podLid', 'pcb', 'esp32', 'hx711', 'charger', 'lora', 'vent']],
-  ['Modules', ['rail', 'fmi', 'landing', 'landingPlain', 'wing', 'solar', 'observer', 'probe', 'cable']],
-  ['Sensors', ['sht']],
+  ['Sensors', ['sensorPort', 'cableGuide', 'probe', 'sht']],
+  ['Connections', ['rail', 'fmi', 'observer', 'cable']],
 ];
 
 const SPECS = (s) => {
@@ -35,9 +34,8 @@ const SPECS = (s) => {
     ['Controller', 'ESP32-S3 · Wi-Fi + BLE (LoRa option)'],
     ['Sensors', 'weight · brood temp · air T/RH · battery'],
     ['Battery', `${p.cells} × 18650 (1S, ${p.cells * 2.5} Ah)`],
-    ['Runtime', d.robot ? 'robot 5 V rail + roof panel' : p.front === 'observer' ? 'powered by the Entrance Observer' : d.solar !== 'none' ? 'all year with the 2.5 W panel' : `≈ ${Math.floor(life.months)} months, then swap the cartridge`],
-    ['Front module', d.robot ? 'robot harness on the M12 connector' : p.front === 'observer' ? 'Entrance Observer (concept)' : d.solarBoard ? 'solar landing board' : 'plain landing board'],
-    ['Solar panel', d.robot ? 'robot roof panel' : { landing: 'landing board (entrance faces south)', left: 'wing on the left rail', back: 'wing on the back rail', right: 'wing on the right rail', lid: 'on the hive lid', none: 'none: USB-C or cartridge swap' }[d.solar]],
+    ['Power', d.robot ? 'robot 5 V rail' : d.observer ? 'from the Entrance Observer (PoE or solar)' : `batteries: ≈ ${Math.floor(life.months)} months, then swap the cartridge`],
+    ['Hive sensor', 'temperature + humidity probe via the entrance'],
     ['Materials', 'plywood + thermo-pine, printed ASA, aluminium brackets'],
     ['Mounting', '4 × M10, 400 × 300 mm'],
     ['Target BOM', '≈ €150–250 at 100 units'],
@@ -121,8 +119,7 @@ export function mountBeehiveScale(root) {
   const opts = {
     context: hash.get('context') === 'robot' ? 'robot' : 'hive',
     cells: 4,
-    front: hash.get('front') === 'observer' ? 'observer' : 'landing',
-    solar: ['landing', 'left', 'back', 'right', 'lid', 'none'].includes(hash.get('solar')) ? hash.get('solar') : 'landing',
+    observer: hash.get('observer') === '1',
   };
   let hiveMode = ['solid', 'ghost', 'off'].includes(hash.get('hive')) ? hash.get('hive') : 'ghost';
   let explode = Math.max(0, Math.min(1, Number(hash.get('explode')) || 0));
@@ -244,20 +241,7 @@ export function mountBeehiveScale(root) {
       build();
     });
   }
-  for (const b of $('front').querySelectorAll('button')) {
-    b.addEventListener('click', () => {
-      opts.front = b.dataset.value;
-      pressSeg('front', opts.front);
-      build();
-    });
-  }
-  for (const b of $('solar').querySelectorAll('button')) {
-    b.addEventListener('click', () => {
-      opts.solar = b.dataset.value;
-      pressSeg('solar', opts.solar);
-      build();
-    });
-  }
+  $('observer').addEventListener('change', (e) => { opts.observer = e.target.checked; build(); });
   const explodeBtn = $('explode');
   const scrub = $('scrub');
   explodeBtn.addEventListener('click', () => { explodeTarget = explodeTarget > 0.5 ? 0 : 1; });
@@ -305,8 +289,7 @@ export function mountBeehiveScale(root) {
   new ResizeObserver(resize).observe(canvas.parentElement);
 
   pressSeg('context', opts.context);
-  pressSeg('front', opts.front);
-  pressSeg('solar', opts.solar);
+  $('observer').checked = opts.observer;
   build();
   frameCamera();
   const clock = new THREE.Clock();
