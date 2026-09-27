@@ -9,7 +9,7 @@
 //   hive=solid|ghost|off   hive display
 //   theme=light|dark       force the colour theme
 //   cam=close|hero         camera close on the scale / product hero framing
-//   observer=1             show an Entrance Observer on the front rail
+//   observer=1             show an Entrance Observer bolted to the front of the base
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
@@ -17,10 +17,10 @@ import { buildScale, batteryLife, PARTS } from './scale-model.js';
 
 // Parts list order in the panel, grouped by assembly.
 const PART_ORDER = [
-  ['Scale', ['deck', 'locator', 'level', 'bracketTop', 'loadcell', 'bracketLow', 'stop', 'bumper', 'base', 'lock', 'harness', 'feet']],
+  ['Scale', ['deck', 'locator', 'bracketTop', 'loadcell', 'bracketLow', 'stop', 'bumper', 'base', 'lock', 'harness', 'feet']],
   ['Pod', ['bay', 'dock', 'pod', 'face', 'usbc', 'cartridge', 'battery', 'podLid', 'pcb', 'esp32', 'hx711', 'charger', 'lora', 'vent']],
-  ['Sensors', ['sensorPort', 'cableGuide', 'probe', 'sht']],
-  ['Connections', ['rail', 'fmi', 'observer', 'cable']],
+  ['Sensors', ['sensorPort', 'cableGuide', 'probe', 'sht', 'accel']],
+  ['Connections', ['mount', 'fmi', 'observer', 'cable']],
 ];
 
 const SPECS = (s) => {

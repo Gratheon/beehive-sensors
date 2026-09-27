@@ -11,7 +11,8 @@
 // - Everything electrical lives on the base (the part that is not weighed).
 //   The pod slides into a bay on the +X side, the service side, next to the
 //   transport lock. The scale runs on batteries; the Entrance Observer (or the
-//   Robotic Beehive) powers it through one M12 connector under the front rail.
+//   Robotic Beehive) powers it through one M12 connector recessed under the
+//   front wall. The Observer bolts to two threaded inserts in that wall.
 // - The hive climate probe plugs into a socket built into the front-right hive
 //   corner block and runs in a groove along the deck into the entrance. Under an
 //   Entrance Observer the porch floor covers that groove. The socket's own lead
@@ -26,7 +27,7 @@ const MM = 0.001;
 
 export const DEFAULTS = {
   context: 'hive', // 'hive' = stand-alone on the ground, 'robot' = inside the Robotic Beehive plinth
-  observer: false, // an Entrance Observer standing on the front rail
+  observer: false, // an Entrance Observer bolted to the front of the base
   cells: 4, // 18650 cells fitted in the battery cartridge (2–4)
   boxes: 2, // hive bodies on the scale
   hive: { w: 506, d: 450, h: 285, wall: 25, lid: 80, bottomBoard: 60, robotBottomBoard: 150, entrance: 300 }, // Estonian hive (outer)
@@ -45,14 +46,13 @@ export const DEFAULTS = {
 // Part descriptions (shown on hover in the viewer, exported as glTF extras)
 // ---------------------------------------------------------------------------
 export const PARTS = {
-  feet: ['Levelling feet', 'Four M10 feet in threaded inserts, rubber pads, 400 × 300 mm pattern. Level the scale once with the bubble level. In the Robotic Beehive the same four holes bolt the scale to the plinth.'],
-  base: ['Base', 'Thermo-pine boards (22 mm) screwed to an 12 mm exterior plywood floor with drain holes. Any joinery shop with a CNC router can make it. It carries the fixed end of the load cell, the pod bay and the rails: everything electrical is on the part that is not weighed.'],
+  feet: ['Levelling feet', 'Four M10 feet in threaded inserts, rubber pads, 400 × 300 mm pattern. Level the scale once with the tilt readout on the pod display. In the Robotic Beehive the same four holes bolt the scale to the plinth.'],
+  base: ['Base', 'Thermo-pine boards (22 mm) screwed to an 12 mm exterior plywood floor with drain holes. Any joinery shop with a CNC router can make it. It carries the fixed end of the load cell, the pod bay and the Entrance Observer mounting points: everything electrical is on the part that is not weighed.'],
   bracketLow: ['Lower weighing bracket', 'Cast aluminium bracket from the AP62AFB kit (341.8 × 254.2 mm), bolted through the plywood floor. It holds the fixed end of the load cell.'],
   loadcell: ['Single-point load cell', 'AP62AFB aluminium single-point cell, 200 kg (350 kg option), potted and sealed. The cell is loaded through its centre, so the reading does not depend on where the weight sits on the deck.'],
   bracketTop: ['Upper weighing bracket', 'The second AP62AFB bracket, bolted to the live end of the load cell and, through threaded inserts, to the deck plywood.'],
   deck: ['Deck', '18 mm film-faced birch plywood with the anti-slip mesh face used on trailer floors, and a 40 mm thermo-pine skirt. Faces and sealed edges keep rain out, so the deck does not gain weight when wet. The skirt overlaps the base with an 8 mm gap: water runs off outside and nothing bypasses the load cell.'],
   locator: ['Hive locators', '3D-printed ASA corner blocks. They put the bottom board in the same place every time, centred over the load cell, and stop it sliding off in a storm.'],
-  level: ['Bubble level', 'Set into the front skirt. Level the scale during installation: a tilted hive loads the cell off-axis, and its frames hang out of plumb.'],
   stop: ['Overload stop (×4)', 'An M10 bolt in a threaded insert under each deck corner, set with a feeler gauge just below the deck. A leaning beekeeper, a dropped box or a heavy snow load lands on the stops, not on the cell.'],
   bumper: ['Side bumpers', 'EPDM pads on the base walls limit sideways deck travel to 4 mm. They do not touch in normal use, so they never take any of the weight.'],
   lock: ['Transport lock', 'Captive quarter-turn lock on the service side, next to the pod. Turned to the red mark it clamps the deck to the base for shipping or moving a hive, so the cell cannot be overloaded. Turned back it weighs; it cannot be lost, and the pod display warns if it is left locked.'],
@@ -67,20 +67,21 @@ export const PARTS = {
   battery: ['18650 cells', 'Li-ion 18650 cells, all in parallel (1S), so no balancing is needed. The kit ships with 2 or 4 cells.'],
   pcb: ['Carrier PCB', 'Gratheon carrier board: ESP32-S3 module, HX711 weight ADC, ideal-diode input selector, BQ24074 charger, MAX17048 fuel gauge, TPS62840 3.3 V buck and a load switch that powers sensors and display only when needed.'],
   esp32: ['ESP32-S3-MINI-1', 'Pre-certified Wi-Fi + BLE 5 module, about 8 µA in deep sleep. Setup over BLE from a phone, uploads over Wi-Fi, flashing over the USB-C port.'],
+  accel: ['Tilt sensor', 'LIS2DH12 accelerometer on the pod board. The pod sits fixed in the base, so it measures the tilt of the scale: the display shows it while you level the feet, and every upload reports it, so the app can warn when a hive has been tipped over or the scale has sunk into soft ground.'],
   hx711: ['HX711 ADC', '24-bit bridge ADC at 10 Hz. The load switch turns off excitation between readings, which saves battery and stops the cell self-heating.'],
   charger: ['Charger + fuel gauge', 'The BQ24074 charges from USB-C or from the 5 V that an Entrance Observer or the Robotic Beehive supplies, and blocks charging below 0 °C. The MAX17048 reports battery % with every upload.'],
   lora: ['LoRa option', 'Footprint for an SX1262 module, fitted for apiaries without Wi-Fi and for the Robotic Beehive supervisor.'],
   vent: ['Pressure vent', 'ePTFE membrane vent. The pod breathes through it as the temperature changes, instead of pulling damp air in past the seals.'],
   sht: ['Ambient sensor', 'SHT40 behind 3D-printed louvres in the left wall of the base, shaded by the deck skirt and away from the pod electronics and the bees’ exhaust air at the entrance.'],
-  rail: ['Front rail', 'Aluminium rail on the front of the base, below the deck skirt. The Entrance Observer frame stands on it with two printed risers, so the Observer, its landing board and the snow on its roof are carried by the base and never weighed.'],
-  fmi: ['Accessory connector', 'M12 8-pin socket under the front rail, facing down, with a dust cap when unused: 5 V in, ground, switched 3.3 V, 1-Wire, UART, wake and shield. The Entrance Observer and the Robotic Beehive harness plug in here and power the pod, so batteries only matter for a stand-alone scale.'],
+  mount: ['Observer mounting points', 'Two M6 threaded inserts in the front wall of the base, under the deck edge, 434 mm apart. The Entrance Observer bolts to them with two printed risers and thumbscrews, so it is carried by the base and never weighed. Stand-alone they are just two small brass rings in the wood.'],
+  fmi: ['Accessory connector', 'M12 8-pin socket recessed into the underside of the front wall, facing down, with a dust cap when unused: 5 V in, ground, switched 3.3 V, 1-Wire, UART, wake and shield. The Entrance Observer and the Robotic Beehive harness plug in here and power the pod, so batteries only matter for a stand-alone scale.'],
   sensorPort: ['Sensor port', 'The front-right hive locator is also the socket for the hive climate probe: a 3D-printed block on the deck, next to the entrance corner. Its lead drops through the deck and loops down inside the skirt to the base, so no cable shows and the loop does not load the cell.'],
   cableGuide: ['Probe groove', 'Printed clip-in groove along the front strip of the deck that holds the probe lead from the sensor port to the entrance. Under an Entrance Observer the porch floor covers it, and the lead enters inside the porch, out of the camera view.'],
   probe: ['Hive climate probe', 'SHT45 temperature and humidity sensor behind a vented stainless cap, on a semi-rigid flat 4-core lead. It goes in through the entrance and rests under the brood frames: brood-nest temperature and hive humidity without drilling, and it stays in place during an inspection.'],
   cable: ['Cables', 'With an Entrance Observer: one short M12 lead from the foot of its right upright to the scale connector. Stand-alone: no outside cables apart from the probe lead into the entrance.'],
-  observer: ['Entrance Observer', 'Gratheon Entrance Observer on the scale, simplified: wall frame on risers on the front rail, porch with the automatic gate, its own landing board, and the head with the camera pod under a gable roof. It powers the scale pod over the M12 lead (from PoE or its solar roof and optional external panel) and uploads the scale readings together with its own.'],
+  observer: ['Entrance Observer', 'Gratheon Entrance Observer on the scale, simplified: wall frame bolted to the front of the base with two risers, porch with the automatic gate, its own landing board, and the head with the camera pod under a gable roof. It powers the scale pod over the M12 lead (from PoE or its solar roof and optional external panel) and uploads the scale readings together with its own.'],
   hive: ['Hive', 'A standard hive on the deck: bottom board, bodies and lid. The hive itself needs no changes.'],
-  robot: ['Robotic Beehive plinth', 'Ghost of the Robotic Beehive plinth. The scale replaces the four deck pads and bolts to the same 400 × 300 mm holes; the robot harness plugs into the front connector, so the pod runs from the robot 5 V rail and roof panel.'],
+  robot: ['Robotic Beehive plinth', 'Ghost of the Robotic Beehive plinth. The scale replaces the four deck pads and bolts to the same 400 × 300 mm holes; the robot harness plugs into the accessory connector, so the pod runs from the robot 5 V rail and roof panel.'],
 };
 
 // ---------------------------------------------------------------------------
@@ -144,6 +145,7 @@ function makeMaterials() {
     timberDark: std(0x6a462c, { roughness: 0.82 }),
     asa: std(0x2d3033, { roughness: 0.6 }), // 3D-printed ASA, graphite
     steel: std(0x9aa1a8, { metalness: 0.85, roughness: 0.3 }),
+    brass: std(0xb8923a, { metalness: 0.8, roughness: 0.35 }),
     black: std(0x1f2122, { roughness: 0.55 }),
     rubber: std(0x151515, { roughness: 0.95 }),
     cellBody: std(0xd4d8db, { metalness: 0.65, roughness: 0.35 }),
@@ -164,7 +166,6 @@ function makeMaterials() {
     red: std(0xc8261d, { roughness: 0.45 }),
     wood: [std(0xd7b07a, { roughness: 0.85 }), std(0xcfa46b, { roughness: 0.85 }), std(0xdcba88, { roughness: 0.85 })],
     lid: std(0xb98d5a, { roughness: 0.85 }),
-    bubble: new THREE.MeshPhysicalMaterial({ color: 0xc8f07a, roughness: 0.1, transmission: 0.6, transparent: true, opacity: 0.8 }),
     glass: new THREE.MeshPhysicalMaterial({ color: 0xcfe6ee, roughness: 0.05, transmission: 0.85, transparent: true, opacity: 0.4 }),
     opal: std(0xf4f3ee, { roughness: 0.4, transparent: true, opacity: 0.75 }), // Observer roof
     porch: std(0x9ea3a6, { roughness: 0.85 }), // Observer porch, apron, board insert
@@ -249,7 +250,8 @@ export function buildScale(options = {}) {
   const B = p.base, K = p.deck, BR = p.bracket, C = p.cell, P = p.pod, H = p.hive;
   const W2 = B.w / 2, D2 = B.d / 2, KW2 = K.w / 2, KD2 = K.d / 2, BW = B.wall;
   const bay = { z: P.w / 2 + 2, h: P.h + 2, x0: W2 - P.len - 2 }; // opening half-width, height, inner end
-  const railZ = KD2 + 8; // outer face of the front rail plate
+  const MOUNT_X = p.eo.frameW / 2 - p.eo.post / 2, MOUNT_Y = 38; // under the Observer uprights, below the skirt
+  const FMI_Z = D2 - BW / 2; // accessory connector in the middle of the front wall
   const port = { x0: 210, x1: 272, z0: H.d / 2 + 1, z1: KD2 - 3, h: 22 }; // sensor port block on the deck, front right
   // ----- feet ----------------------------------------------------------------
   if (!d.robot) {
@@ -286,18 +288,20 @@ export function buildScale(options = {}) {
     cyl(base, 9, stopTop - B.floor - 8, M.aluCast, x, B.floor + (stopTop - B.floor - 8) / 2, z, 'y', 'stop', 16);
     cyl(base, 8, 8, M.steel, x, stopTop - 4, z, 'y', 'stop', 6);
   }
-  // side bumpers on the outer wall faces (clear of the bay and the rails)
+  // side bumpers on the outer wall faces (clear of the bay and the mounting points)
   for (const s of [-1, 1]) for (const z of [-150, 150]) box(base, 4, 12, 40, M.rubber, s * (W2 + 2), B.h - 10, z, 'bumper');
   for (const s of [-1, 1]) box(base, 40, 12, 4, M.rubber, 120, B.h - 10, s * (D2 + 2), 'bumper');
   // ambient sensor: printed louvres in the -X wall, under the skirt
   for (let i = 0; i < 4; i++) box(base, 3, 3, 50, M.asa, -W2 - 1, 25 + i * 7, -110, 'sht');
   box(base, 12, 8, 10, M.white, -W2 + BW + 6, 28, -110, 'sht');
-  // front rail, below the deck skirt: the Entrance Observer risers hook on it
-  slab(base, -220, 16, D2, 440, 4, railZ - D2, M.alu, 'rail');
-  slab(base, -220, 16, railZ - 4, 440, 30, 4, M.alu, 'rail');
-  // accessory connector (M12, facing down under the front ledge)
-  cyl(base, 8, 14, M.steel, 60, 9, D2 + 18, 'y', 'fmi', 20);
-  cyl(base, 9.5, 3, M.black, 60, 17, D2 + 18, 'y', 'fmi', 20);
+  // Entrance Observer mounting points: two M6 threaded inserts in the front wall, under the deck edge
+  for (const sx of [-1, 1]) {
+    cyl(base, 5, 1, M.brass, sx * MOUNT_X, MOUNT_Y, D2 + 0.5, 'z', 'mount', 16);
+    cyl(base, 3, 1.2, M.black, sx * MOUNT_X, MOUNT_Y, D2 + 0.6, 'z', 'mount', 12);
+  }
+  // accessory connector: M12 socket recessed into the underside of the front wall, facing down
+  cyl(base, 8, 14, M.steel, 60, 7, FMI_Z, 'y', 'fmi', 20);
+  cyl(base, 10, 0.6, M.black, 60, -0.2, FMI_Z, 'y', 'fmi', 24);
   // internal harness: load cell, front connector and ambient sensor to the dock
   const dockPt = (z) => [bay.x0 - 2, B.floor + 18, z];
   const cellLead = [-C.l / 2 - 28, d.cellY - d.baseY + C.h / 2, 0];
@@ -354,8 +358,6 @@ export function buildScale(options = {}) {
   cyl(deck, 5, 1, M.pod, port.x1 - 18, K.t + port.h + 0.4, (port.z0 + port.z1) / 2, 'y', 'sensorPort', 6); // hexagon mark
   // probe groove along the front strip of the deck to the entrance corner
   slab(deck, 128, K.t, port.z0 + 3, port.x0 - 128, 6, 12, M.asa, 'cableGuide');
-  const lvl = place(deck, cached('lvl', () => new THREE.CylinderGeometry(9 * MM, 9 * MM, 4 * MM, 24)), M.bubble, -200, -K.skirt / 2, KD2 + 1, 'level');
-  lvl.rotation.x = Math.PI / 2;
   box(deck, 90, 14, 2, M.pod, 190, -K.skirt / 2, KD2 + 1, 'deck'); // printed badge
   // transport lock: captive quarter-turn knob on the service-side skirt, next to the pod
   const lock = group(deck, 'transportLock', KW2 + 3, -K.skirt / 2, -bay.z - 45, 'lock');
@@ -415,6 +417,7 @@ export function buildScale(options = {}) {
   box(pcb, P.len - 10, 1.6, 62, M.pcb, 0, 0.8, 0, 'pcb');
   box(pcb, 15.4, 2.4, 20.5, M.can, -14, 2.8, 8, 'esp32');
   box(pcb, 10, 1.5, 6, M.chip, 10, 2.4, -14, 'hx711');
+  box(pcb, 3, 1, 3, M.chip, 4, 2.1, 22, 'accel');
   box(pcb, 4, 1, 4, M.chip, 12, 2.1, 8, 'charger');
   box(pcb, 2, 0.8, 2, M.chip, 20, 2, 8, 'charger');
   box(pcb, 16, 1, 22, M.gasket, -12, 2.1, -16, 'lora'); // SX1262 footprint
@@ -449,7 +452,7 @@ export function buildScale(options = {}) {
     cable(fieldCables, [[x, d.deckY + 2, gapZ], [x, d.deckY - 14, gapZ], [x - 6, d.baseY + B.h + 12, gapZ - 2], [x - 12, d.baseY + B.h + 8, D2 - BW - 6], [x - 20, d.baseY + B.floor + 8, D2 - BW - 12], [bay.x0 - 12, d.baseY + B.floor + 6, 60]], 1.4, M.cable, 'harness');
   }
 
-  const fmiZ = D2 + 18;
+  const fmiZ = FMI_Z;
   if (d.observer) {
     // Entrance Observer, simplified from its own model: origin at the entrance floor, 14 mm in front of the deck
     const E = p.eo, O = [0, d.entranceY, KD2 + 14];
@@ -457,15 +460,17 @@ export function buildScale(options = {}) {
     nodes.observer = obs;
     const graphite = M.asa, FW = E.frameW / 2, tan = Math.tan((E.slope * Math.PI) / 180);
     const roofUnder = (x) => E.ridge - Math.abs(x) * tan;
-    const legBottom = d.baseY + 16 - O[1]; // legs reach down in front of the rail
-    const railTop = d.baseY + 50 - O[1];
+    const legBottom = d.baseY + 16 - O[1]; // legs reach down in front of the base
+    const riserY = d.baseY + MOUNT_Y - 8 - O[1], riserZ = D2 - O[2]; // back plate on the base wall, under the skirt
     for (const s of [-1, 1]) {
       const x = s * (FW - E.post / 2), top = roofUnder(FW) - 3;
       slab(obs, x - E.post / 2, legBottom, 0, E.post, top - legBottom, E.depth, graphite, 'observer'); // upright
       const len = Math.hypot(FW, roofUnder(0) - roofUnder(FW));
       const rafter = box(obs, len, E.post, E.depth, graphite, s * FW / 2, (roofUnder(FW) + roofUnder(0)) / 2 - 14, E.depth / 2, 'observer');
       rafter.rotation.z = -s * Math.atan2(roofUnder(0) - roofUnder(FW), FW);
-      slab(obs, x - E.post / 2, railTop - 4, -18, E.post, 10, 18, M.asa, 'observer'); // printed riser hooked over the rail
+      slab(obs, x - E.post / 2, riserY, riserZ, E.post, 16, -riserZ, M.asa, 'observer'); // printed riser: leg → base wall
+      slab(obs, x - E.post / 2, riserY - 4, riserZ, E.post, 24, 4, M.asa, 'observer'); // back plate on the inserts
+      cyl(obs, 6, 5, M.pod, x, riserY + 8, riserZ + 7, 'z', 'observer', 16); // thumbscrew
     }
     // head: ridge beam, opal gable roof, camera pod with its yellow face
     slab(obs, -15, E.ridge - 40, 2, 30, 36, 186, M.alu, 'observer');
@@ -499,14 +504,14 @@ export function buildScale(options = {}) {
     slab(board, -E.board.w / 2 + 40, 0, 0, E.board.w - 80, 0.6, E.board.d - 20, M.porch, 'observer'); // grey insert
     // short M12 lead: foot of the right upright → scale accessory connector
     const foot = [O[0] + FW - E.post / 2, d.baseY + 4, O[2] + 27];
-    cable(fieldCables, [foot, [foot[0], d.baseY - 10, foot[2] - 4], [foot[0] - 30, d.baseY - 14, fmiZ + 20], [100, d.baseY - 12, fmiZ + 10], [60, d.baseY - 6, fmiZ], [60, d.baseY + 1, fmiZ]], 2.3, M.cable);
-    cyl(fieldCables, 9, 12, M.black, 60, d.baseY - 1, fmiZ, 'y', 'fmi', 20);
+    cable(fieldCables, [foot, [foot[0], d.baseY - 10, foot[2] - 4], [foot[0] - 30, d.baseY - 12, D2 + 10], [100, d.baseY - 12, fmiZ + 8], [60, d.baseY - 14, fmiZ], [60, d.baseY - 8, fmiZ]], 2.3, M.cable);
+    cyl(fieldCables, 9, 10, M.black, 60, d.baseY - 5, fmiZ, 'y', 'fmi', 20);
   } else if (!d.robot) {
-    cyl(base, 9, 8, M.rubber, 60, -2, D2 + 18, 'y', 'fmi', 20); // dust cap on the unused connector
+    cyl(base, 9, 4, M.rubber, 60, -2, FMI_Z, 'y', 'fmi', 20); // dust cap on the unused connector
   } else {
     // Robotic Beehive: the robot harness plugs into the accessory connector
-    cable(fieldCables, [[60, d.baseY + 1, fmiZ], [60, d.baseY - 30, fmiZ + 12], [80, d.ground - 60, fmiZ + 12], [120, 70, fmiZ]], 2.5, M.cable, 'fmi');
-    cyl(fieldCables, 9, 12, M.black, 60, d.baseY - 1, fmiZ, 'y', 'fmi', 20);
+    cable(fieldCables, [[60, d.baseY - 8, fmiZ], [60, d.baseY - 30, fmiZ + 4], [80, d.ground - 60, fmiZ + 12], [120, 70, fmiZ]], 2.5, M.cable, 'fmi');
+    cyl(fieldCables, 9, 10, M.black, 60, d.baseY - 5, fmiZ, 'y', 'fmi', 20);
   }
 
   // ----- Robotic Beehive plinth (ghost) ---------------------------------------

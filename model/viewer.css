@@ -97,3 +97,13 @@ html[data-theme="dark"] .beehive-scale {
 .beehive-scale.bs-shot .bs-panel, .beehive-scale.bs-shot .bs-info, .beehive-scale.bs-shot .bs-hint { display: none; }
 .beehive-scale .bs-wide { grid-column: 1 / -1; }
 .beehive-scale .bs-seg { flex-wrap: wrap; }
+
+/* Marketing showcase (gratheon.com front page): the scale explodes as the page scrolls.
+   Layout of the pinned section (.deviceShowcase, .deviceShowcaseStage) is shared with the
+   Entrance Observer showcase. No link wraps the model, so there is no hover highlight. */
+.bs-showcase { position: relative; width: 100%; max-width: 560px; margin: 0 auto; aspect-ratio: 1 / 1; }
+.bs-showcase > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+.bs-showcase-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bs-showcase-ready > img { visibility: hidden; }
+.deviceShowcase .bs-showcase { flex: 1 1 auto; width: 100%; max-width: 1400px; aspect-ratio: auto; min-height: 0; }
+.deviceShowcase .bs-showcase img { max-width: none; max-height: none; border-radius: 0; }
