@@ -11,7 +11,7 @@
 // Without such a section, it explodes while the element's centre moves up the
 // viewport. Same behaviour as the Entrance Observer showcase.
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { setupStudio, dressModel } from './studio.js';
 import { buildScale } from './scale-model.js';
 
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -22,35 +22,17 @@ export function mountShowcase(root) {
   canvas.setAttribute('aria-hidden', 'true');
   root.appendChild(canvas);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-  renderer.setClearColor(0x000000, 0);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 
   const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.7;
-  const sun = new THREE.DirectionalLight(0xfff6e5, 2.6);
-  sun.position.set(-1.2, 2.8, 2.2);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  Object.assign(sun.shadow.camera, { left: -0.9, right: 0.9, top: 1.4, bottom: -0.5, near: 0.5, far: 6 });
-  sun.shadow.bias = -0.0005;
-  scene.add(sun, new THREE.HemisphereLight(0xeaf2ff, 0xb9c9a0, 0.9));
-  // soft contact shadow on an invisible floor, so the scale stands on the page
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: 0.18 }));
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  setupStudio(renderer, scene, { shadowBox: { left: -0.9, right: 0.9, top: 1.4, bottom: -0.5 } });
 
   const model = buildScale({ context: 'hive', cells: 4 });
   scene.add(model.root);
   const hiveMats = model.nodes.hiveMaterials;
   for (const m of hiveMats) m.transparent = true;
+  dressModel(model.root);
 
   const camera = new THREE.PerspectiveCamera(28, 1, 0.05, 20);
   const target = new THREE.Vector3();

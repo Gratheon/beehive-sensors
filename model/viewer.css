@@ -107,3 +107,5 @@ html[data-theme="dark"] .beehive-scale {
 .bs-showcase-ready > img { visibility: hidden; }
 .deviceShowcase .bs-showcase { flex: 1 1 auto; width: 100%; max-width: 1400px; aspect-ratio: auto; min-height: 0; }
 .deviceShowcase .bs-showcase img { max-width: none; max-height: none; border-radius: 0; }
+/* fade the lit floor out before the canvas edge, so the render has no visible frame on the black stage */
+.deviceShowcase .bs-showcase-canvas { -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); }
