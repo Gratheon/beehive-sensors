@@ -349,8 +349,10 @@ export function buildScale(options = {}) {
   }
   const hx = H.w / 2, hz = H.d / 2;
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    if (!(sx > 0 && sz > 0)) box(deck, 40, 20, 8, M.asa, sx * (hx - 16), K.t + 10, sz * (hz + 4), 'locator');
-    box(deck, 8, 20, 32, M.asa, sx * (hx + 4), K.t + 10, sz * (hz - 12), 'locator');
+    // L-shaped, 10 mm arms (print/hive-locator.stl); the front-right corner is the sensor port
+    if (sx > 0 && sz > 0) continue;
+    box(deck, 46, 20, 10, M.asa, sx * (hx - 13), K.t + 10, sz * (hz + 5), 'locator');
+    box(deck, 10, 20, 28, M.asa, sx * (hx + 5), K.t + 10, sz * (hz - 14), 'locator');
   }
   // sensor port: the front-right locator doubles as the probe socket
   slab(deck, port.x0, K.t, port.z0, port.x1 - port.x0, port.h, port.z1 - port.z0, M.asa, 'sensorPort');
@@ -361,8 +363,8 @@ export function buildScale(options = {}) {
   box(deck, 90, 14, 2, M.pod, 190, -K.skirt / 2, KD2 + 1, 'deck'); // printed badge
   // transport lock: captive quarter-turn knob on the service-side skirt, next to the pod
   const lock = group(deck, 'transportLock', KW2 + 3, -K.skirt / 2, -bay.z - 45, 'lock');
-  cyl(lock, 11, 6, M.asa, 0, 0, 0, 'x', 'lock', 24);
-  box(lock, 3, 16, 4, M.asa, 4, 0, 0, 'lock'); // wing grip
+  cyl(lock, 11, 8, M.asa, 0, 0, 0, 'x', 'lock', 24); // knob, print/transport-lock-knob.stl
+  box(lock, 7, 26, 4, M.asa, 7.5, 0, 0, 'lock'); // wing grip
   box(lock, 1, 6, 2, M.red, 3.2, 12, 0, 'lock'); // red LOCK mark on the skirt
   cyl(lock, 3, 30, M.steel, -18, 0, 0, 'x', 'lock', 10);
 
@@ -412,7 +414,7 @@ export function buildScale(options = {}) {
   cyl(pod, 5.5, 3, M.podDark, 1.5, 26, 64, 'x', 'face', 24); // button
   box(pod, 2, 8, 14, M.rubber, 1, 10, 64, 'usbc'); // USB-C flap
   cyl(pod, 3, 1, M.white, 0.6, 10, 36, 'x', 'vent', 16);
-  cyl(pod, 4, 2, M.steel, 1, 30, -66, 'x', 'pod', 16); // latch
+  cyl(pod, 4, 2, M.steel, 1, 10, 20, 'x', 'pod', 16); // latch, clear of the cartridge slot
   const pcb = group(pod, 'pcb', -P.len / 2, 4, 42, 'pcb');
   box(pcb, P.len - 10, 1.6, 62, M.pcb, 0, 0.8, 0, 'pcb');
   box(pcb, 15.4, 2.4, 20.5, M.can, -14, 2.8, 8, 'esp32');

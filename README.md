@@ -22,8 +22,12 @@ The model lives in `model/scale-model.js`; the viewer is `viewer.js`, `viewer.ht
 cd model && npm install   # first time only
 npm run build             # regenerates index.html and beehive-scale.glb
 npm run preview           # renders docs/preview*.png (headless Chrome)
-npm run website           # also updates the embeds on gratheon.com (../../gratheon.com)
+npm run print             # print/*.stl + print/*.png for the 3D-printed parts
+npm run website           # also updates the embeds, STL downloads and BOM images on gratheon.com (../../gratheon.com)
 ```
+
+### 3D-printed parts
+Print-ready STL files are in [`model/print/`](model/print/): hive locator (×3), sensor port block, probe groove, pod bay sleeve, pod enclosure tub, lid and face, battery cartridge, transport lock knob and ambient sensor louvre. They are built in `model/print-parts.js` with the [manifold](https://github.com/elalish/manifold) CSG kernel, so every file is a closed solid, in millimetres and already oriented for printing without supports. Print in ASA (graphite for the small parts, honey yellow for the pod), 0.2 mm layers, 4 perimeters. Print settings per part are in the [bill of materials](https://gratheon.com/docs/beehive-sensors/bill-of-materials/#3d-printed-parts).
 
 ## Features
 - serves as a web server on a dedicated WiFi access point (gratheon) to configure the sensor when first booted or after reset button is pressed
